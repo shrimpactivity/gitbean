@@ -8,14 +8,15 @@ import java.io.File;
  */
 public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
-    //public static final File GITLET_DIR = join(CWD, ".gitlet");
-//    public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
-//    public static final File REFS_DIR = join(CWD, ".gitlet", "refs");
-//    public static final File BLOBS_DIR = join(CWD, ".gitlet", "blobs");
-//    public static final File ADD_STAGE_DIR = join(CWD, ".gitlet", "add-stage");
-//    public static final File RM_STAGE_DIR = join(CWD, ".gitlet", "rm-stage");
+    public static final File GITBEAN_DIR = new File(CWD, ".gitbean");
+    public static final File COMMITS_DIR = new File(GITBEAN_DIR, "commits");
+    public static final File REFS_DIR = new File(GITBEAN_DIR, "refs");
+    public static final File BLOBS_DIR = new File(GITBEAN_DIR, "blobs");
+    public static final File STAGE_DIR = new File(GITBEAN_DIR, "stage");
+    public static final File UNSTAGE_DIR = new File(GITBEAN_DIR, "unstage");
 
     public static void initialize() {
-        System.out.println(CWD);
+        GITBEAN_DIR.mkdir();
+
     }
 }
