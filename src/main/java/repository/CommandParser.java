@@ -41,11 +41,12 @@ public class CommandParser {
                     return true;
                 }
                 break;
-//            case "rm":
-//                if (validateCommandArgs(args, 2)) {
-//                    Repository.stageFileForRemoval(args[1]);
-//                }
-//                break;
+            case "rm":
+                if (Command.RM.validate(1)) {
+                    Repository.stageFileForRemoval(args[1]);
+                    return true;
+                }
+                break;
 //            case "log":
 //                if (validateCommandArgs(args, 1)) {
 //                    Repository.printHeadLog();

@@ -78,6 +78,5 @@ public class RepositoryTest {
         // Test file can't be staged when already tracked
         Repository.stageFile("testFile");
         assertFalse(new File(Repository.STAGE_DIR, "testFile").isFile());
-
     }
 }

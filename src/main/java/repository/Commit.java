@@ -64,6 +64,30 @@ public class Commit implements Serializable {
     public String getParent() { return parent; }
 
     /**
+     * Returns true if this commit is tracking a file with the given name.
+     * @param fileName
+     * @return
+     */
+    public boolean isTracking(String fileName) {
+        return fileBlobs.containsKey(fileName);
+    }
+
+    /**
+     * Returns true if the commit is tracking the given file's name and contents.
+     * @param file
+     * @return
+     */
+    public boolean isTrackingExact(File file) {
+        Blob fileBlob = new Blob(file);
+        Blob commitBlob = getBlob(file.getName());
+        if (commitBlob != null && commitBlob.hasSameContent(fileBlob)) {
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
      * Returns the file Blob if the given file is tracked by this Commit, or null if it isn't tracked.
      * @param fileName
      * @return

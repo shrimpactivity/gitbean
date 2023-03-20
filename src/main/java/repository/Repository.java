@@ -61,28 +61,21 @@ public class Repository {
      * @param fileName
      */
     public static void stageFile(String fileName) {
-        File file = new File(CWD, fileName);
-        if (!file.exists()) {
+        File fileToStage = new File(CWD, fileName);
+        if (!fileToStage.exists()) {
             System.out.println("File does not exist.");
             return;
         }
 
         Commit head = getHeadCommit();
-        if (head == null) {
-            System.out.println("Error: HEAD ref not found.");
-        }
-        Blob fileBlob = new Blob(file);
-        // If exact same version of file is already tracked, do nothing.
-        Blob commitBlob = head.getBlob(fileName);
-        if (commitBlob != null && commitBlob.hasSameContent(fileBlob)) {
-            System.out.println("File is already tracked.");
+        if (head.isTrackingExact(fileToStage)) {
             return;
         }
 
         File target = new File(STAGE_DIR, fileName);
         target.delete();
         try {
-            Files.copy(file.toPath(), target.toPath());
+            Files.copy(fileToStage.toPath(), target.toPath());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -154,6 +147,32 @@ public class Repository {
         STAGE_DIR.mkdir();
         FileHelper.safeDeleteDir(UNSTAGE_DIR);
         UNSTAGE_DIR.mkdir();
+    }
+
+    public static void stageFileForRemoval(String fileName) {
+        List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
+        if (stagedFiles == null) {
+            System.out.println("Error: unable to read staged files.");
+            return;
+        }
+
+        if (stagedFiles.contains(fileName)) {
+            File fileToRemove = new File(STAGE_DIR, fileName);
+            fileToRemove.delete();
+        }
+
+        Commit head = getHeadCommit();
+        if (head.isTracking(fileName)) {
+            File fileToRemove = new File(CWD, fileName);
+            File target = new File(UNSTAGE_DIR, fileName);
+            target.delete();
+            try {
+                Files.copy(fileToRemove.toPath(), target.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fileToRemove.delete();
+        }
     }
 
     /**
