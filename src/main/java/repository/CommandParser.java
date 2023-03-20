@@ -6,7 +6,7 @@ package repository;
  *
  * Reads and validates args as provided by Main.main and calls Repository methods.
  */
-public class ParseCommand {
+public class CommandParser {
     /**
      * Parses command line arguments and calls Repository methods.
      *
@@ -24,7 +24,7 @@ public class ParseCommand {
 
         switch (commandText) {
             case "init":
-                if (Command.INIT.validateCommandArguments(numArgs)) {
+                if (Command.INIT.validate(numArgs)) {
                     Repository.initialize();
                     return true;
                 }

@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * @author Carson Crow
  * @author https://github.com/shrimpactivity/
  */
-public class ParseCommandTest {
+public class CommandParserTest {
     @Test
     public void testNoArgs() {
         String[] args = new String[0];
-        assertFalse(ParseCommand.parse(args));
+        assertFalse(CommandParser.parse(args));
     }
 }

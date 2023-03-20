@@ -40,6 +40,10 @@ public class Commit implements Serializable {
         return String.format(message, timestamp.toString(), parent);
     }
 
+    public String getId() {
+        return id;
+    }
+
     public String getMessage() {
         return message;
     }

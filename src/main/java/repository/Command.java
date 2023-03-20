@@ -31,7 +31,12 @@ public enum Command {
         this.maxArgs = maxArgs;
     }
 
-    public boolean validateCommandArguments(int numArgs) {
+    /**
+     * Returns true if the number of arguments falls in the expected range for the command.
+     * @param numArgs The number of arguments following the command.
+     * @return
+     */
+    public boolean validate(int numArgs) {
         return numArgs >= minArgs && numArgs <= maxArgs;
     }
 }
