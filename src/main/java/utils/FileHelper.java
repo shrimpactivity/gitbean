@@ -1,6 +1,11 @@
 package utils;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -45,6 +50,36 @@ public class FileHelper {
     }
 
     /**
+     * Reads a byte array from the specified file contents.
+     * @param file
+     * @return
+     */
+    public static byte[] readBytes(File file) {
+        if (!file.isFile()) {
+            throw new IllegalArgumentException("Must read a normal file.");
+        }
+        try {
+            return Files.readAllBytes(file.toPath());
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    public static void writeBytes(File file, byte[] data) {
+        try {
+            if (file.isDirectory()) {
+                throw new IllegalArgumentException("Cannot overwrite directory.");
+            }
+
+            FileOutputStream stream = new FileOutputStream(file);
+            stream.write(data);
+            stream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Writes the serializable object to the specified file.
      * @param file
      * @param obj
@@ -69,23 +104,18 @@ public class FileHelper {
      * @param file
      * @return Object
      */
-    public static Object readObject(File file) {
-        try {
-            if (!file.isFile()) {
-                throw new IllegalArgumentException("File is not normal.");
-            }
-
-            FileInputStream fileIn = new FileInputStream(file);
-            ObjectInputStream objectIn = new ObjectInputStream(new BufferedInputStream(fileIn));
-            Object result = objectIn.readObject();
-
-            fileIn.close();
-            objectIn.close();
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+    public static Object readObject(File file) throws IOException, ClassNotFoundException {
+        if (!file.isFile()) {
+            throw new IllegalArgumentException("File is not normal.");
         }
+
+        FileInputStream fileIn = new FileInputStream(file);
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        Object result = in.readObject();
+
+        fileIn.close();
+        in.close();
+        return result;
     }
 
     /**
@@ -119,5 +149,20 @@ public class FileHelper {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Returns a List of plain file names found in the provided directory, or null if given a File
+     * that is not a directory.
+     * @param dir
+     * @return
+     */
+    public static List<String> getPlainFilenames(File dir) {
+        String[] files = dir.list();
+        if (files == null) {
+            return null;
+        }
+        Arrays.sort(files);
+        return Arrays.asList(files);
     }
 }

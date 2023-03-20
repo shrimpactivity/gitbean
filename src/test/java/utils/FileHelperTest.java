@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import repository.Commit;
 import repository.Repository;
@@ -35,16 +36,7 @@ public class FileHelperTest {
     }
 
     @Test
-    public void testWriteCommit() {
-        Commit content = new Commit();
-        File file = new File(TESTING_DIR, "testCommit");
-        FileHelper.writeObject(file, content);
-        Assertions.assertTrue(file.isFile());
-        file.delete();
-    }
-
-    @Test
-    public void testReadString() {
+    public void testReadString() throws IOException, ClassNotFoundException {
         String content = "Hello world!";
         File file = new File(TESTING_DIR, "testString");
         FileHelper.writeObject(file, content);
@@ -56,15 +48,31 @@ public class FileHelperTest {
     }
 
     @Test
-    public void testReadCommit() {
+    public void testSerializeCommit() throws IOException, ClassNotFoundException {
         Commit content = new Commit();
         File file = new File(TESTING_DIR, "testCommit");
+        file.createNewFile();
         FileHelper.writeObject(file, content);
 
         Commit result = (Commit) FileHelper.readObject(file);
         Assertions.assertEquals("initial commit", result.getMessage());
+        System.out.println(result.toString());
 
+        file.delete();
+    }
 
+    @Test
+    public void testReadWriteBytes() {
+        File file = new File(TESTING_DIR, "testBytes");
+        byte[] data = new byte[0];
+        FileHelper.writeBytes(file, data);
+        byte[] result = FileHelper.readBytes(file);
+        Assertions.assertTrue(Arrays.equals(data, result));
+
+        data = new byte[]{125, 60, 50};
+        FileHelper.writeBytes(file, data);
+        result = FileHelper.readBytes(file);
+        Assertions.assertTrue(Arrays.equals(data, result));
         file.delete();
     }
 

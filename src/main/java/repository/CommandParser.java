@@ -29,16 +29,18 @@ public class CommandParser {
                     return true;
                 }
                 break;
-//            case "add":
-//                if (validateCommandArgs(args, 2)){
-//                    Repository.stageFileForAddition(args[1]);
-//                }
-//                break;
-//            case "commit":
-//                if (validateCommandArgs(args, 2)){
-//                    Repository.commitStagedFiles(args[1]);
-//                }
-//                break;
+            case "add":
+                if (Command.ADD.validate(numArgs)){
+                    Repository.stageFile(args[1]);
+                    return true;
+                }
+                break;
+            case "commit":
+                if (Command.COMMIT.validate(1)){
+                    Repository.commitStagedFiles(args[1]);
+                    return true;
+                }
+                break;
 //            case "rm":
 //                if (validateCommandArgs(args, 2)) {
 //                    Repository.stageFileForRemoval(args[1]);

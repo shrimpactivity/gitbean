@@ -26,4 +26,20 @@ public class HashHelper {
             throw new IllegalArgumentException("System does not support SHA-1");
         }
     }
+
+    public static String sha1(byte... vals) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            for (Byte val : vals) {
+                md.update(val);
+            }
+            Formatter result = new Formatter();
+            for (byte b : md.digest()) {
+                result.format("%02x", b);
+            }
+            return result.toString();
+        } catch (NoSuchAlgorithmException excp) {
+            throw new IllegalArgumentException("System does not support SHA-1");
+        }
+    }
 }

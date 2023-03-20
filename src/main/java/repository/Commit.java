@@ -1,9 +1,13 @@
 package repository;
 
+import utils.FileHelper;
+import utils.HashHelper;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.Path;
+import java.util.*;
 
 /**
  * @author Carson Crow
@@ -11,11 +15,13 @@ import java.util.Map;
  */
 public class Commit implements Serializable {
 
+    private static final long serialVersionUID = 0;
+
     private final String message;
     private final Date timestamp;
     private final String parent;
     private final String mergeParent = "";
-    private final Map<String, String> fileBlobs = new HashMap<>();
+    private final Map<String, String> fileBlobs;
     private final String id;
 
     /** Creates an initial root commit. */
@@ -23,51 +29,83 @@ public class Commit implements Serializable {
         message = "initial commit";
         timestamp = new Date(0);
         parent = "";
-        id = generateID();
+        fileBlobs = new HashMap<>();
+        id = generateId();
     }
 
-    /** Creates a new commit with the specified parent and message. */
-    public Commit(String parentID, String message) {
+    /** Creates a new commit with the specified parent, message, and file blobs. */
+    public Commit(String parentID, String message, Map<String, String> blobs) {
         this.message = message;
         timestamp = new Date();
         parent = parentID;
-        id = generateID();
+        fileBlobs = blobs;
+        id = generateId();
     }
-
 
     /** Generates this Commit's ID by hashing its attribute values. */
-    private String generateID() {
-        return String.format(message, timestamp.toString(), parent);
+    private String generateId() {
+        String result = HashHelper.sha1(
+                message,
+                timestamp.toString(),
+                parent,
+                fileBlobs.toString()
+        );
+        return result;
     }
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+
+    public Map<String, String> getFileBlobs() { return fileBlobs; }
 
     public String getMessage() {
         return message;
     }
 
-    public Date getTimestamp() {
-        return timestamp;
+    public String getParent() { return parent; }
+
+    /**
+     * Returns the file Blob if the given file is tracked by this Commit, or null if it isn't tracked.
+     * @param fileName
+     * @return
+     */
+    public Blob getBlob(String fileName) {
+        String id = fileBlobs.get(fileName);
+        if (id == null) {
+            return null;
+        }
+        return Blob.load(id);
     }
 
-    public void saveCommit() {
-//        File f = join(Repository.COMMITS_DIR, this.ID);
-//        writeObject(f, this);
+    /**
+     * Saves the Commit under the COMMITS_DIR with a file name of its ID.
+     */
+    public void save() {
+        File file = new File(Repository.COMMITS_DIR, id);
+        FileHelper.writeObject(file, this);
+    }
+
+    /**
+     * Deserializes the specified Commit and returns it.
+     * @param id The commit id
+     * @return
+     */
+    public static Commit load(String id) {
+        File file = new File(Repository.COMMITS_DIR, id);
+        try {
+            return (Commit) FileHelper.readObject(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public String toString() {
-//        String result = "===" + "\n" + "commit " + ID + "\n";
-//        if (parents.size() > 1) {
-//            result += "Merge:";
-//            for (String p : parents) {
-//                result += " " + p.substring(0, 7);
-//            }
-//        }
-//        result += "Date: " + timestamp + "\n" + message + "\n";
-//        return result;
-        return "commit";
+        String result = String.format("===%ncommit %s%n", id);
+        result += String.format("Date: %s%n%s%n", timestamp.toString(), message);
+        if (mergeParent != "") {
+            result += String.format("Merge: %s", mergeParent.substring(0, 7));
+        }
+        return result;
     }
 
 

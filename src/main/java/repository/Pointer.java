@@ -16,7 +16,7 @@ import java.io.IOException;
  */
 public class Pointer {
 
-    public String name;
+    public final String name;
     public String value;
 
     /**
@@ -31,21 +31,19 @@ public class Pointer {
 
     /**
      * Saves the Pointer into the specified directory.
-     * @param directory
      */
-    public void save(File directory) {
-        File file = new File(directory, name);
+    public void save() {
+        File file = new File(Repository.REFS_DIR, name);
         FileHelper.writeString(file, value);
     }
 
     /**
      * Loads pointer with the given name.
-     * @param directory
      * @param name
      * @return A new Pointer object.
      */
-    public static Pointer loadPointer(File directory, String name) {
-        File file = new File(directory, name);
+    public static Pointer load(String name) {
+        File file = new File(Repository.REFS_DIR, name);
         String value = FileHelper.readString(file);
         return new Pointer(name, value);
     }

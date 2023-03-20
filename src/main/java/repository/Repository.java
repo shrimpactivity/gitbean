@@ -3,6 +3,11 @@ package repository;
 import utils.FileHelper;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Carson Crow
@@ -35,11 +40,124 @@ public class Repository {
     public static void initialize() {
         createDirectories();
         Commit initCommit = new Commit();
-        Pointer head = new Pointer("HEAD", initCommit.getId());
+        initCommit.save();
+        Pointer head = new Pointer("HEAD", "master");
+        head.save();
+        Pointer master = new Pointer("master", initCommit.getId());
+        master.save();
     }
 
     /**
-     * Resets the repository to its initial state, deleting everything in .gitbean. Used for testing purposes.
+     * Returns the Commit object referenced by the HEAD pointer.
+     */
+    public static Commit getHeadCommit() {
+        Pointer headRef = Pointer.load("HEAD");
+        Pointer branchRef = Pointer.load(headRef.value);
+        return Commit.load(branchRef.value);
+    }
+
+    /**
+     * Adds the specified file to the staging area if it's not already tracked by the HEAD commit.
+     * @param fileName
+     */
+    public static void stageFile(String fileName) {
+        File file = new File(CWD, fileName);
+        if (!file.exists()) {
+            System.out.println("File does not exist.");
+            return;
+        }
+
+        Commit head = getHeadCommit();
+        if (head == null) {
+            System.out.println("Error: HEAD ref not found.");
+        }
+        Blob fileBlob = new Blob(file);
+        // If exact same version of file is already tracked, do nothing.
+        Blob commitBlob = head.getBlob(fileName);
+        if (commitBlob != null && commitBlob.hasSameContent(fileBlob)) {
+            System.out.println("File is already tracked.");
+            return;
+        }
+
+        File target = new File(STAGE_DIR, fileName);
+        target.delete();
+        try {
+            Files.copy(file.toPath(), target.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Creates Blobs from the filenames in STAGE_DIR, saves them, and returns a mapping
+     * of the file names to the blob ids.
+     * @param stagedFileNames
+     * @return
+     */
+    private static Map<String, String> createAndSaveBlobs(List<String> stagedFileNames) {
+        Map<String, String> fileBlobs = new HashMap<>();
+        for (String fileName : stagedFileNames) {
+            File file = new File(STAGE_DIR, fileName);
+            Blob blob = new Blob(file);
+            fileBlobs.put(fileName, blob.getId());
+            blob.save();
+        }
+        return fileBlobs;
+    }
+
+    /**
+     * Removes file name keys from the mapping if that file is in UNSTAGE_DIR
+     * @param fileBlobs
+     */
+    private static void deleteUnstagedFiles(Map<String, String> fileBlobs) {
+        List<String> files = FileHelper.getPlainFilenames(UNSTAGE_DIR);
+        if (files == null) {
+            System.out.println("Error: unable to read unstaged files.");
+            return;
+        }
+        for (String name : files) {
+            fileBlobs.remove(name);
+        }
+    }
+
+    /**
+     * Creates a new commit tracking files in STAGE_DIR and serializes it, as well as blobs of the files.
+     * @param message
+     */
+    public static void commitStagedFiles(String message) {
+        List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
+        if (stagedFiles == null) {
+            System.out.println("Error: unable to read staged files.");
+            return;
+        }
+        if (stagedFiles.size() == 0) {
+            System.out.println("No changes staged to commit.");
+            return;
+        }
+
+        Pointer head = Pointer.load("HEAD");
+        Commit prevCommit = getHeadCommit();
+
+        Map<String, String> combinedBlobs = new HashMap<>(prevCommit.getFileBlobs());
+        Map<String, String> newBlobs = createAndSaveBlobs(stagedFiles);
+        combinedBlobs.putAll(newBlobs);
+        deleteUnstagedFiles(combinedBlobs);
+
+        Pointer branch = Pointer.load(head.value);
+        Commit newCommit = new Commit(branch.value, message, combinedBlobs);
+        newCommit.save();
+
+        branch.value = newCommit.getId();
+        branch.save();
+
+        FileHelper.safeDeleteDir(STAGE_DIR);
+        STAGE_DIR.mkdir();
+        FileHelper.safeDeleteDir(UNSTAGE_DIR);
+        UNSTAGE_DIR.mkdir();
+    }
+
+    /**
+     * Resets the repository to its initial state. Used for testing, not available as command.
      */
     public static void clear() {
         FileHelper.safeDeleteDir(GITBEAN_DIR);
