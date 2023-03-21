@@ -33,9 +33,22 @@ public class Repository {
     }
 
     /**
+     * Returns true if a gitbean repo has been initialized.
+     * @return
+     */
+    private static boolean exists() {
+        return GITBEAN_DIR.isDirectory();
+    }
+
+    /**
      * Initializes a repository in the current working directory.
      */
     public static void initialize() {
+        if (exists()) {
+            System.out.printf("GitBean repository already exists in %s%n", CWD);
+            return;
+        }
+
         createDirectories();
         Commit initCommit = new Commit();
         initCommit.save();
@@ -59,6 +72,11 @@ public class Repository {
      * @param fileName
      */
     public static void stageFile(String fileName) {
+        if (!exists()) {
+            System.out.printf("GitBean repository has not been initialized in %s%n", CWD);
+            return;
+        }
+
         File fileToStage = new File(CWD, fileName);
         if (!fileToStage.exists()) {
             System.out.println("File does not exist.");
@@ -117,6 +135,11 @@ public class Repository {
      * @param message
      */
     public static void commitStagedFiles(String message) {
+        if (!exists()) {
+            System.out.printf("GitBean repository has not been initialized in %s%n", CWD);
+            return;
+        }
+
         List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
         if (stagedFiles == null) {
             System.out.println("Error: unable to read staged files.");
@@ -154,6 +177,11 @@ public class Repository {
      * @param fileName
      */
     public static void stageFileForRemoval(String fileName) {
+        if (!exists()) {
+            System.out.printf("GitBean repository has not been initialized in %s%n", CWD);
+            return;
+        }
+
         List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
         if (stagedFiles == null) {
             System.out.println("Error: unable to read staged files.");
@@ -183,6 +211,11 @@ public class Repository {
      * Prints the commit history starting with the HEAD commit.
      */
     public static void printLog() {
+        if (!exists()) {
+            System.out.printf("GitBean repository has not been initialized in %s%n", CWD);
+            return;
+        }
+
         Commit current = getHeadCommit();
         System.out.println(current);
         while (!current.getParent().equals("")) {
@@ -195,6 +228,11 @@ public class Repository {
      * Prints all Commits located in COMMITS_DIR.
      */
     public static void printGlobalLog() {
+        if (!exists()) {
+            System.out.printf("GitBean repository has not been initialized in %s%n", CWD);
+            return;
+        }
+
         List<String> commitIds = FileHelper.getPlainFilenames(COMMITS_DIR);
         if (commitIds == null) {
             System.out.println("Error: unable to read commits.");
@@ -212,6 +250,11 @@ public class Repository {
      * @param message
      */
     public static void findMessage(String message) {
+        if (!exists()) {
+            System.out.printf("GitBean repository has not been initialized in %s%n", CWD);
+            return;
+        }
+
         List<String> commitIds = FileHelper.getPlainFilenames(COMMITS_DIR);
         if (commitIds == null) {
             System.out.println("Error: unable to read commits.");
@@ -345,6 +388,11 @@ public class Repository {
      * Prints the status of this Repository.
      */
     public static void printStatus() {
+        if (!exists()) {
+            System.out.printf("GitBean repository has not been initialized in %s%n", CWD);
+            return;
+        }
+
         List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
         if (stagedFiles == null) {
             System.out.println("Error: unable to read staged files.");
