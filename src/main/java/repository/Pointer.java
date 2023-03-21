@@ -38,12 +38,15 @@ public class Pointer {
     }
 
     /**
-     * Loads pointer with the given name.
+     * Loads pointer with the given name, or null if the pointer doesn't exist in REFS_DIR.
      * @param name
      * @return A new Pointer object.
      */
     public static Pointer load(String name) {
         File file = new File(Repository.REFS_DIR, name);
+        if (!file.isFile()) {
+            return null;
+        }
         String value = FileHelper.readString(file);
         return new Pointer(name, value);
     }

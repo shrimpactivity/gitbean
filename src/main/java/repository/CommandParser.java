@@ -1,5 +1,7 @@
 package repository;
 
+import java.util.Arrays;
+
 /**
  * @author Carson Crow
  * @author https://github.com/shrimpactivity/
@@ -36,44 +38,47 @@ public class CommandParser {
                 }
                 break;
             case "commit":
-                if (Command.COMMIT.validate(1)){
+                if (Command.COMMIT.validate(numArgs)){
                     Repository.commitStagedFiles(args[1]);
                     return true;
                 }
                 break;
             case "rm":
-                if (Command.RM.validate(1)) {
+                if (Command.RM.validate(numArgs)) {
                     Repository.stageFileForRemoval(args[1]);
                     return true;
                 }
                 break;
             case "log":
-                if (Command.LOG.validate(0)) {
+                if (Command.LOG.validate(numArgs)) {
                     Repository.printLog();
                     return true;
                 }
                 break;
             case "global-log":
-                if (Command.GLOBAL_LOG.validate(0)) {
+                if (Command.GLOBAL_LOG.validate(numArgs)) {
                     Repository.printGlobalLog();
                     return true;
                 }
                 break;
             case "find":
-                if (Command.FIND.validate(1)) {
+                if (Command.FIND.validate(numArgs)) {
                     Repository.findMessage(args[1]);
                     return true;
                 }
                 break;
             case "status":
-                if (Command.STATUS.validate(0)) {
+                if (Command.STATUS.validate(numArgs)) {
                     Repository.printStatus();
                     return true;
                 }
                 break;
-//            case "checkout":
-//                // TODO
-//                break;
+            case "checkout":
+                if (Command.CHECKOUT.validate(numArgs)) {
+                    Repository.checkout(Arrays.copyOfRange(args, 1, args.length));
+                    return true;
+                }
+                break;
 //            case "branch":
 //                // TODO
 //                break;

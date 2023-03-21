@@ -5,10 +5,7 @@ import utils.FileHelper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Carson Crow
@@ -372,6 +369,23 @@ public class Repository {
         printUnstagedFiles(unstagedFiles);
         printModifications(stagedFiles);
         printUntrackedFiles(cwdFiles, stagedFiles);
+    }
+
+    private static void checkoutBranch(String branch) {
+        String current = Pointer.load("HEAD").value;
+        if (current.equals(branch)) {
+            System.out.println("No need to checkout current branch");
+        }
+        Pointer ref = Pointer.load(branch);
+        if (ref == null) {
+            System.out.println("No such branch exists.");
+        }
+    }
+
+    public static void checkout(String[] args) {
+        if (args.length == 1) {
+            checkoutBranch(args[0]);
+        }
     }
 
     /**
