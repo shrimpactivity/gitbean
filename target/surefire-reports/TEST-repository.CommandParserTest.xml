@@ -15,7 +15,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Eclipse Adoptium\jdk-17.0.6.10-hotspot\bin"/>
-    <property name="sun.java.command" value="C:\Users\crcro\AppData\Local\Temp\surefire5240770827171990524\surefirebooter-20230320135508563_3.jar C:\Users\crcro\AppData\Local\Temp\surefire5240770827171990524 2023-03-20T13-55-08_466-jvmRun1 surefire-20230320135508563_1tmp surefire_0-20230320135508563_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\crcro\AppData\Local\Temp\surefire4111900881768470445\surefirebooter-20230320170522678_3.jar C:\Users\crcro\AppData\Local\Temp\surefire4111900881768470445 2023-03-20T17-05-22_591-jvmRun1 surefire-20230320170522678_1tmp surefire_0-20230320170522678_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\crcro\Documents\gitbean\target\test-classes;C:\Users\crcro\Documents\gitbean\target\classes;C:\Users\crcro\.m2\repository\org\junit\jupiter\junit-jupiter\5.9.2\junit-jupiter-5.9.2.jar;C:\Users\crcro\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\crcro\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\crcro\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\crcro\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\crcro\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.9.2\junit-jupiter-params-5.9.2.jar;C:\Users\crcro\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\crcro\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;C:\Users\crcro\.m2\repository\commons-io\commons-io\2.5\commons-io-2.5.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -30,7 +30,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\crcro\AppData\Local\Temp\surefire5240770827171990524\surefirebooter-20230320135508563_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\crcro\AppData\Local\Temp\surefire4111900881768470445\surefirebooter-20230320170522678_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="17.0.6+10"/>
@@ -57,7 +57,7 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testNoArgs" classname="repository.CommandParserTest" time="0.014">
+  <testcase name="testNoArgs" classname="repository.CommandParserTest" time="0.013">
     <system-out><![CDATA[Please enter a command.
 ]]></system-out>
   </testcase>

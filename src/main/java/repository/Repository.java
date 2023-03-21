@@ -99,7 +99,7 @@ public class Repository {
     }
 
     /**
-     * Removes file name keys from the mapping if that file is in UNSTAGE_DIR
+     * Removes file name keys from the provided Commit mapping if that file is in UNSTAGE_DIR
      * @param fileBlobs
      */
     private static void deleteUnstagedFiles(Map<String, String> fileBlobs) {
@@ -114,7 +114,8 @@ public class Repository {
     }
 
     /**
-     * Creates a new commit tracking files in STAGE_DIR and serializes it, as well as blobs of the files.
+     * Called by 'commit' command. Creates a new commit tracking files in STAGE_DIR and
+     * serializes it, as well as blobs of the files.
      * @param message
      */
     public static void commitStagedFiles(String message) {
@@ -149,6 +150,11 @@ public class Repository {
         UNSTAGE_DIR.mkdir();
     }
 
+    /**
+     * Called by the 'rm' command. Removes file from stage, and stages it to be removed from being
+     * tracked by current commit.
+     * @param fileName
+     */
     public static void stageFileForRemoval(String fileName) {
         List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
         if (stagedFiles == null) {
@@ -173,6 +179,35 @@ public class Repository {
             }
             fileToRemove.delete();
         }
+    }
+
+    /**
+     * Prints the commit history starting with the HEAD commit.
+     */
+    public static void printLog() {
+        Commit current = getHeadCommit();
+        System.out.println(current);
+        while (!current.getParent().equals("")) {
+            current = Commit.load(current.getParent());
+            System.out.println(current);
+        }
+    }
+
+    /**
+     * Prints all Commits located in COMMITS_DIR.
+     */
+    public static void printGlobalLog() {
+        List<String> commitIds = FileHelper.getPlainFilenames(COMMITS_DIR);
+        if (commitIds == null) {
+            System.out.println("Error: unable to read commits.");
+            return;
+        }
+
+        for (String id : commitIds) {
+            Commit current = Commit.load(id);
+            System.out.println(current);
+        }
+
     }
 
     /**

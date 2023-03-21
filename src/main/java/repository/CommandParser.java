@@ -47,16 +47,18 @@ public class CommandParser {
                     return true;
                 }
                 break;
-//            case "log":
-//                if (validateCommandArgs(args, 1)) {
-//                    Repository.printHeadLog();
-//                }
-//                break;
-//            case "global-log":
-//                if (validateCommandArgs(args, 1)) {
-//                    Repository.printGlobalLog();
-//                }
-//                break;
+            case "log":
+                if (Command.LOG.validate(0)) {
+                    Repository.printLog();
+                    return true;
+                }
+                break;
+            case "global-log":
+                if (Command.GLOBAL_LOG.validate(0)) {
+                    Repository.printGlobalLog();
+                    return true;
+                }
+                break;
 //            case "find":
 //                if (validateCommandArgs(args, 2)) {
 //                    Repository.printCommitsWithMessage(args[1]);
