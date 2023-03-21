@@ -59,16 +59,18 @@ public class CommandParser {
                     return true;
                 }
                 break;
-//            case "find":
-//                if (validateCommandArgs(args, 2)) {
-//                    Repository.printCommitsWithMessage(args[1]);
-//                }
-//                break;
-//            case "status":
-//                if (validateCommandArgs(args, 1)) {
-//                    Repository.printStatus();
-//                }
-//                break;
+            case "find":
+                if (Command.FIND.validate(1)) {
+                    Repository.findMessage(args[1]);
+                    return true;
+                }
+                break;
+            case "status":
+                if (Command.STATUS.validate(0)) {
+                    Repository.printStatus();
+                    return true;
+                }
+                break;
 //            case "checkout":
 //                // TODO
 //                break;

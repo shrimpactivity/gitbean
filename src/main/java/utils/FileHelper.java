@@ -3,6 +3,8 @@ package utils;
 import java.io.*;
 import java.nio.file.Files;
 import java.security.SecureRandom;
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -163,6 +165,14 @@ public class FileHelper {
             return null;
         }
         Arrays.sort(files);
-        return Arrays.asList(files);
+        List<String> fileNames = Arrays.asList(files);
+        List<String> result = new ArrayList<>();
+        for (String name : fileNames) {
+            File f = new File(dir, name);
+            if (f.isFile()) {
+                result.add(name);
+            }
+        }
+        return result;
     }
 }

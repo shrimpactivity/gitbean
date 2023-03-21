@@ -5,6 +5,7 @@ import utils.FileHelper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -207,13 +208,176 @@ public class Repository {
             Commit current = Commit.load(id);
             System.out.println(current);
         }
+    }
 
+    /**
+     * Prints the IDs of all Commits with the given message.
+     * @param message
+     */
+    public static void findMessage(String message) {
+        List<String> commitIds = FileHelper.getPlainFilenames(COMMITS_DIR);
+        if (commitIds == null) {
+            System.out.println("Error: unable to read commits.");
+            return;
+        }
+
+        boolean messageFound = false;
+        for (String id : commitIds) {
+            Commit current = Commit.load(id);
+            if (current.getMessage().equals(message)) {
+                System.out.println(current.getId());
+                messageFound = true;
+            }
+        }
+
+        if (!messageFound) {
+            System.out.println("Found no commit with that message.");
+        }
+    }
+
+    /**
+     * Prints all branch names and marks the current one.
+     */
+    private static void printBranchStatus() {
+        System.out.println("=== Branches ===");
+        String current = Pointer.load("HEAD").value;
+
+        List<String> branches = FileHelper.getPlainFilenames(REFS_DIR);
+        if (branches == null) {
+            System.out.println("Error: unable to read commits.");
+            return;
+        }
+
+        for (String branch : branches) {
+            if (!branch.equals("HEAD")) {
+                if (branch.equals(current)) {
+                    System.out.printf("%s*%n", branch);
+                }
+                else {
+                    System.out.println(branch);
+                }
+            }
+        }
+        System.out.println();
+    }
+
+    /**
+     * Prints the file names of everything in STAGE_DIR.
+     */
+    private static void printStagedFiles(List<String> stagedFiles) {
+        System.out.println("=== Staged Files ===");
+
+        for (String name : stagedFiles) {
+            System.out.println(name);
+        }
+        System.out.println();
+    }
+
+    /**
+     * Prints the file names of everything in UNSTAGE_DIR.
+     */
+    private static void printUnstagedFiles(List<String> unstagedFiles) {
+        System.out.println("=== Removed Files ===");
+        for (String name : unstagedFiles) {
+            System.out.println(name);
+        }
+        System.out.println();
+    }
+
+    /**
+     * Prints status of files that have untracked changes.
+     * @param stagedFiles
+     */
+    private static void printModifications(List<String> stagedFiles) {
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        Map<String, String> fileStatuses = new HashMap<>();
+        Map<String, String> commitFileBlobs = getHeadCommit().getFileBlobs();
+
+        for (String name : stagedFiles) {
+            Blob stageBlob = new Blob(new File(STAGE_DIR, name));
+            File cwdVersion = new File(CWD, name);
+            if (!cwdVersion.isFile()) {
+                fileStatuses.put(name, "deleted");
+                continue;
+            }
+
+            Blob cwdBlob = new Blob(cwdVersion);
+            if (!cwdBlob.hasSameContent(stageBlob)) {
+                fileStatuses.put(name, "modified");
+            }
+        }
+
+        for (String name : commitFileBlobs.keySet()) {
+            File cwdVersion = new File(CWD, name);
+            File removeVersion = new File(UNSTAGE_DIR, name);
+            if (!cwdVersion.isFile()) {
+                if (!removeVersion.isFile()) {
+                    fileStatuses.put(name, "deleted");
+                }
+                continue;
+            }
+
+
+            Blob cwdBlob = new Blob(cwdVersion);
+            if (!cwdBlob.getId().equals(commitFileBlobs.get(name))) {
+                fileStatuses.put(name, "modified");
+            }
+        }
+
+        for (String file : fileStatuses.keySet()) {
+            System.out.printf("%s (%s)%n", file, fileStatuses.get(file));
+        }
+        System.out.println();
+    }
+
+    /**
+     * Prints untracked files.
+     */
+    private static void printUntrackedFiles(List<String> cwdFiles, List<String> stageFiles) {
+        System.out.println("=== Untracked Files ===");
+        for (String file : cwdFiles) {
+            if (!getHeadCommit().isTracking(file) && !stageFiles.contains(file)) {
+                System.out.println(file);
+            }
+        }
+        System.out.println();
+    }
+
+
+    /**
+     * Prints the status of this Repository.
+     */
+    public static void printStatus() {
+        List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
+        if (stagedFiles == null) {
+            System.out.println("Error: unable to read staged files.");
+            return;
+        }
+
+        List<String> unstagedFiles = FileHelper.getPlainFilenames(UNSTAGE_DIR);
+        if (unstagedFiles == null) {
+            System.out.println("Error: unable to read unstaged files.");
+            return;
+        }
+
+        List<String> cwdFiles = FileHelper.getPlainFilenames(CWD);
+        if (cwdFiles == null) {
+            System.out.println("Error: unable to read unstaged files.");
+            return;
+        }
+
+
+        printBranchStatus();
+        printStagedFiles(stagedFiles);
+        printUnstagedFiles(unstagedFiles);
+        printModifications(stagedFiles);
+        printUntrackedFiles(cwdFiles, stagedFiles);
     }
 
     /**
      * Resets the repository to its initial state. Used for testing, not available as command.
      */
-    public static void clear() {
+    protected static void clear() {
         FileHelper.safeDeleteDir(GITBEAN_DIR);
         initialize();
     }
