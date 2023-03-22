@@ -79,12 +79,18 @@ public class CommandParser {
                     return true;
                 }
                 break;
-//            case "branch":
-//                // TODO
-//                break;
-//            case "rm-branch":
-//                // TODO
-//                break;
+            case "branch":
+                if (Command.BRANCH.validate(numArgs)) {
+                    Repository.createBranch(args[1]);
+                    return true;
+                }
+                break;
+            case "rm-branch":
+                if (Command.RM_BRANCH.validate(numArgs)) {
+                    Repository.removeBranch(args[1]);
+                    return true;
+                }
+                break;
 //            case "reset":
 //                // TODO
 //                break;

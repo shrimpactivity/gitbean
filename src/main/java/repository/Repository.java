@@ -545,6 +545,33 @@ public class Repository {
     }
 
     /**
+     * Creates a new branch pointing to the HEAD commit.
+     * @param name
+     */
+    public static void createBranch(String name) {
+        Commit headCommit = getHeadCommit();
+        Pointer branch = new Pointer(name, headCommit.getId());
+        branch.save();
+    }
+
+    /**
+     * Deletes the branch with the given name if it is not the current branch.
+     * @param name
+     */
+    public static void removeBranch(String name) {
+        Pointer head = Pointer.load("HEAD");
+        if (head.value.equals(name)) {
+            System.out.println("Cannot delete currently checked out branch. Please move to a different branch before deleting.");
+            return;
+        }
+
+        File branch = new File(REFS_DIR, name);
+        if (branch.isFile()) {
+            branch.delete();
+        }
+    }
+
+    /**
      * Resets the repository to its initial state. Used for testing, not available as command.
      */
     protected static void clear() {
