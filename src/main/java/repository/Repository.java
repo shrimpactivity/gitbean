@@ -120,10 +120,6 @@ public class Repository {
      */
     private static void deleteUnstagedFiles(Map<String, String> fileBlobs) {
         List<String> files = FileHelper.getPlainFilenames(UNSTAGE_DIR);
-        if (files == null) {
-            System.out.println("Error: unable to read unstaged files.");
-            return;
-        }
         for (String name : files) {
             fileBlobs.remove(name);
         }
@@ -141,10 +137,6 @@ public class Repository {
         }
 
         List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
-        if (stagedFiles == null) {
-            System.out.println("Error: unable to read staged files.");
-            return;
-        }
         if (stagedFiles.size() == 0) {
             System.out.println("No changes staged to commit.");
             return;
@@ -183,10 +175,6 @@ public class Repository {
         }
 
         List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
-        if (stagedFiles == null) {
-            System.out.println("Error: unable to read staged files.");
-            return;
-        }
 
         if (stagedFiles.contains(fileName)) {
             File fileToRemove = new File(STAGE_DIR, fileName);
@@ -256,11 +244,6 @@ public class Repository {
         }
 
         List<String> commitIds = FileHelper.getPlainFilenames(COMMITS_DIR);
-        if (commitIds == null) {
-            System.out.println("Error: unable to read commits.");
-            return;
-        }
-
         boolean messageFound = false;
         for (String id : commitIds) {
             Commit current = Commit.load(id);
@@ -281,13 +264,7 @@ public class Repository {
     private static void printBranchStatus() {
         System.out.println("=== Branches ===");
         String current = Pointer.load("HEAD").value;
-
         List<String> branches = FileHelper.getPlainFilenames(REFS_DIR);
-        if (branches == null) {
-            System.out.println("Error: unable to read commits.");
-            return;
-        }
-
         for (String branch : branches) {
             if (!branch.equals("HEAD")) {
                 if (branch.equals(current)) {
@@ -306,7 +283,6 @@ public class Repository {
      */
     private static void printStagedFiles(List<String> stagedFiles) {
         System.out.println("=== Staged Files ===");
-
         for (String name : stagedFiles) {
             System.out.println(name);
         }
@@ -331,7 +307,8 @@ public class Repository {
     private static void printModifications(List<String> stagedFiles) {
         System.out.println("=== Modifications Not Staged For Commit ===");
         Map<String, String> fileStatuses = new HashMap<>();
-        Map<String, String> commitFileBlobs = getHeadCommit().getFileBlobs();
+        Commit head = getHeadCommit();
+        Map<String, String> commitFileBlobs = head.getFileBlobs();
 
         for (String name : stagedFiles) {
             Blob stageBlob = new Blob(new File(STAGE_DIR, name));
@@ -357,9 +334,7 @@ public class Repository {
                 continue;
             }
 
-
-            Blob cwdBlob = new Blob(cwdVersion);
-            if (!cwdBlob.getId().equals(commitFileBlobs.get(name))) {
+            if (!head.isTrackingExact(cwdVersion)) {
                 fileStatuses.put(name, "modified");
             }
         }
@@ -394,23 +369,8 @@ public class Repository {
         }
 
         List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
-        if (stagedFiles == null) {
-            System.out.println("Error: unable to read staged files.");
-            return;
-        }
-
         List<String> unstagedFiles = FileHelper.getPlainFilenames(UNSTAGE_DIR);
-        if (unstagedFiles == null) {
-            System.out.println("Error: unable to read unstaged files.");
-            return;
-        }
-
         List<String> cwdFiles = FileHelper.getPlainFilenames(CWD);
-        if (cwdFiles == null) {
-            System.out.println("Error: unable to read unstaged files.");
-            return;
-        }
-
 
         printBranchStatus();
         printStagedFiles(stagedFiles);
@@ -419,20 +379,117 @@ public class Repository {
         printUntrackedFiles(cwdFiles, stagedFiles);
     }
 
+    /**
+     * Helper method for checkoutBranch(). If modifications are found, prints file names and returns true.
+     * @return
+     */
+    private static boolean checkForModificationsInCWD() {
+        Commit head = getHeadCommit();
+        List<String> cwdFiles = FileHelper.getPlainFilenames(CWD);
+        List<String> modifiedFiles = new ArrayList<>();
+        for (String name : cwdFiles) {
+            File file = new File(CWD, name);
+            if (head.isTrackingExact(file)) {
+                modifiedFiles.add(name);
+            }
+        }
+        if (modifiedFiles.size() > 0) {
+            System.out.println("Following files have untracked changed. Stage and commit changes before switching branches.");
+            for (String name : modifiedFiles) {
+                System.out.println(name);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if any files are staged for addition/removal.
+     * @return
+     */
+    private static boolean checkForStagedFiles() {
+        List<String> stagedFiles = FileHelper.getPlainFilenames(STAGE_DIR);
+        List<String> unstagedFiles = FileHelper.getPlainFilenames(UNSTAGE_DIR);
+        if (stagedFiles.size() > 0 || unstagedFiles.size() > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Deletes all plain files in CWD.
+     */
+    private static void deleteCWDFiles() {
+        for (String name : FileHelper.getPlainFilenames(CWD)) {
+            File file = new File(CWD, name);
+            FileHelper.safeDelete(file);
+        }
+    }
+
+    /**
+     * Loads the files tracked by the given commit into CWD.
+     * @param com
+     */
+    private static void loadCommitFiles(Commit com) throws IOException {
+        Map<String, String> blobs = com.getFileBlobs();
+        for (String name : blobs.keySet()) {
+            File file = new File(CWD, name);
+            file.createNewFile();
+            Blob blob = Blob.load(blobs.get(name));
+            FileHelper.writeBytes(file, blob.getContent());
+        }
+    }
+
     private static void checkoutBranch(String branch) {
+        if (checkForModificationsInCWD()) {
+            return;
+        }
+
+        if (checkForStagedFiles()) {
+            System.out.println("Commit staged changes before switching branches.");
+            return;
+        }
+
         String current = Pointer.load("HEAD").value;
         if (current.equals(branch)) {
             System.out.println("No need to checkout current branch");
+            return;
         }
+
         Pointer ref = Pointer.load(branch);
         if (ref == null) {
             System.out.println("No such branch exists.");
+            return;
         }
+
+        deleteCWDFiles();
+
+        Commit newHead = Commit.load(ref.value);
+        try {
+            loadCommitFiles(newHead);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Pointer newHeadPointer = new Pointer("HEAD", branch);
+        newHeadPointer.save();
+    }
+
+    /**
+     * Copies the version of the file as it exists in the HEAD commit into the CWD.
+     * @param fileName
+     */
+    private static void checkoutHeadFile(String fileName) {
+        // TODO
     }
 
     public static void checkout(String[] args) {
         if (args.length == 1) {
             checkoutBranch(args[0]);
+        }
+
+        if (args.length == 2) {
+            checkoutHeadFile(args[1]);
         }
     }
 
