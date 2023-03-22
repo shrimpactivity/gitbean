@@ -1,9 +1,0 @@
-repository\Pointer.class
-Main.class
-repository\CommandParser.class
-repository\Command.class
-repository\Repository.class
-repository\Commit.class
-utils\FileHelper.class
-utils\HashHelper.class
-repository\Blob.class
