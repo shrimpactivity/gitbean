@@ -4,9 +4,7 @@ import utils.FileHelper;
 import utils.HashHelper;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -21,7 +19,7 @@ public class Commit implements Serializable {
     private final Date timestamp;
     private final String parent;
     private final String mergeParent = "";
-    private final Map<String, String> fileBlobs;
+    private final Map<String, String> fileMap;
     private final String id;
 
     /** Creates an initial root commit. */
@@ -29,16 +27,16 @@ public class Commit implements Serializable {
         message = "initial commit";
         timestamp = new Date(0);
         parent = "";
-        fileBlobs = new HashMap<>();
+        fileMap = new HashMap<>();
         id = generateId();
     }
 
     /** Creates a new commit with the specified parent, message, and file blobs. */
-    public Commit(String parentID, String message, Map<String, String> blobs) {
+    public Commit(String parentID, String message, Map<String, String> fileBlobIds) {
         this.message = message;
         timestamp = new Date();
         parent = parentID;
-        fileBlobs = blobs;
+        fileMap = fileBlobIds;
         id = generateId();
     }
 
@@ -48,14 +46,14 @@ public class Commit implements Serializable {
                 message,
                 timestamp.toString(),
                 parent,
-                fileBlobs.toString()
+                fileMap.toString()
         );
         return result;
     }
 
     public String getId() { return id; }
 
-    public Map<String, String> getFileBlobs() { return fileBlobs; }
+    public Map<String, String> getFileMap() { return fileMap; }
 
     public String getMessage() {
         return message;
@@ -69,7 +67,7 @@ public class Commit implements Serializable {
      * @return
      */
     public boolean isTracking(String fileName) {
-        return fileBlobs.containsKey(fileName);
+        return fileMap.containsKey(fileName);
     }
 
     /**
@@ -93,7 +91,7 @@ public class Commit implements Serializable {
      * @return
      */
     public Blob getBlob(String fileName) {
-        String id = fileBlobs.get(fileName);
+        String id = fileMap.get(fileName);
         if (id == null) {
             return null;
         }
@@ -108,13 +106,31 @@ public class Commit implements Serializable {
         FileHelper.writeObject(file, this);
     }
 
+    private static File getCommitFileStartingWith(String id) {
+        List<String> commitIds = FileHelper.getPlainFilenames(Repository.COMMITS_DIR);
+        for (String commitId : commitIds) {
+            if (commitId.startsWith(id)) {
+                return new File(Repository.COMMITS_DIR, commitId);
+            }
+        }
+        return null;
+    }
+
     /**
-     * Deserializes the specified Commit and returns it.
+     * Deserializes the specified Commit and returns it. The id can be abbreviated down to six characters.
      * @param id The commit id
      * @return
      */
     public static Commit load(String id) {
+        if (id.length() < 6) {
+            throw new IllegalArgumentException("Commit ID must be six or more characters long.");
+        }
+
         File file = new File(Repository.COMMITS_DIR, id);
+        if (!file.isFile()) {
+            file = getCommitFileStartingWith(id);
+        }
+
         try {
             return (Commit) FileHelper.readObject(file);
         } catch (Exception e) {

@@ -145,7 +145,7 @@ public class Repository {
         Pointer head = Pointer.load("HEAD");
         Commit prevCommit = getHeadCommit();
 
-        Map<String, String> combinedBlobs = new HashMap<>(prevCommit.getFileBlobs());
+        Map<String, String> combinedBlobs = new HashMap<>(prevCommit.getFileMap());
         Map<String, String> newBlobs = createAndSaveBlobs(stagedFiles);
         combinedBlobs.putAll(newBlobs);
         deleteUnstagedFiles(combinedBlobs);
@@ -308,7 +308,7 @@ public class Repository {
         System.out.println("=== Modifications Not Staged For Commit ===");
         Map<String, String> fileStatuses = new HashMap<>();
         Commit head = getHeadCommit();
-        Map<String, String> commitFileBlobs = head.getFileBlobs();
+        Map<String, String> commitFileBlobs = head.getFileMap();
 
         for (String name : stagedFiles) {
             Blob stageBlob = new Blob(new File(STAGE_DIR, name));
@@ -431,7 +431,7 @@ public class Repository {
      * @param com
      */
     private static void loadCommitFiles(Commit com) throws IOException {
-        Map<String, String> blobs = com.getFileBlobs();
+        Map<String, String> blobs = com.getFileMap();
         for (String name : blobs.keySet()) {
             File file = new File(CWD, name);
             file.createNewFile();
@@ -476,13 +476,60 @@ public class Repository {
     }
 
     /**
+     * Copies the specified file tracked by the commit into the CWD, overwriting if necessary.
+     * Throws an IllegalArgumentException if file is not tracked by commit.
+     * @param c
+     * @param fileName
+     */
+    private static void copyCommitFileToCWD(Commit c, String fileName) {
+        Blob fileBlob = c.getBlob(fileName);
+        if (fileBlob == null) {
+            throw new IllegalArgumentException(String.format("File %s is not tracked by commit %s.%n", fileName, c.getId()));
+        }
+
+        File file = new File(CWD, fileName);
+        if (!file.isFile()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        FileHelper.writeBytes(file, fileBlob.getContent());
+    }
+
+    /**
      * Copies the version of the file as it exists in the HEAD commit into the CWD.
      * @param fileName
      */
     private static void checkoutHeadFile(String fileName) {
-        // TODO
+        Commit head = getHeadCommit();
+        try {
+            copyCommitFileToCWD(head, fileName);
+        } catch (IllegalArgumentException e) {
+            System.out.println("File is not currently tracked.");
+        }
     }
 
+    /**
+     * Copies the version of the file tracked by the given commit into the CWD.
+     * @param commitId
+     * @param fileName
+     */
+    private static void checkoutCommitFile(String commitId, String fileName) {
+        Commit c = Commit.load(commitId);
+        try {
+            copyCommitFileToCWD(c, fileName);
+        } catch (IllegalArgumentException e) {
+            System.out.println("File is not tracked by that commit.");
+        }
+    }
+
+    /**
+     * Performs one of three operations depending on the number of arguments following the
+     * checkout command.
+     * @param args
+     */
     public static void checkout(String[] args) {
         if (args.length == 1) {
             checkoutBranch(args[0]);
@@ -490,6 +537,10 @@ public class Repository {
 
         if (args.length == 2) {
             checkoutHeadFile(args[1]);
+        }
+
+        if (args.length == 3) {
+            checkoutCommitFile(args[0], args[2]);
         }
     }
 
